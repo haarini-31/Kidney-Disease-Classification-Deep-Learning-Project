@@ -1,0 +1,1 @@
+from cnnClassifier.entity.data_ingestion_config import DataIngestionConfig

@@ -1,0 +1,19 @@
+# Ignore artifacts and data
+artifacts/
+research/**/artifacts/
+
+# Ignore datasets
+*.zip
+*.jpg
+*.jpeg
+*.png
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Logs
+logs/
