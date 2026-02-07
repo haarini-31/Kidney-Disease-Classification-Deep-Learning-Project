@@ -1,7 +1,8 @@
+import os
 from pathlib import Path
 
 from cnnClassifier.utils.common import read_yaml, create_directories
-from cnnClassifier.entity.data_ingestion_config import DataIngestionConfig
+from cnnClassifier.entity.data_ingestion_config import DataIngestionConfig, TrainingConfig
 from cnnClassifier.entity.data_ingestion_config import PrepareBaseModelConfig
 from cnnClassifier.constants import *
 
@@ -55,9 +56,32 @@ class ConfigurationManager:
             base_model_path=Path(config.base_model_path),
             updated_base_model_path=Path(config.updated_base_model_path),
 
-            params_image_size=params.IMAGE_SIZE,
-            params_learning_rate=params.LEARNING_RATE,
-            params_include_top=params.INCLUDE_TOP,
-            params_weights=params.WEIGHTS,
-            params_classes=params.CLASSES,
+            params_image_size=params.image_size,
+            params_learning_rate=params.learning_rate,
+            params_include_top=params.include_top,
+            params_weights=params.weights,
+            params_classes=params.classes,
         )
+
+    def get_training_config(self) -> TrainingConfig:
+            training_config = self.config.training
+            params = self.params
+            
+            # DIRECT PATHS - Hardcoded to your specific Windows folders
+            # This bypasses all logic and relative pathing issues
+            updated_base_model_path = r"C:\Users\haari\OneDrive\Desktop\aiml 2026\Kidney-Disease-Classification-Deep-Learning-Project\artifacts\prepare_base_model\base_model_updated.h5"
+            
+            training_data = r"C:\Users\haari\OneDrive\Desktop\aiml 2026\Kidney-Disease-Classification-Deep-Learning-Project\artifacts\data_ingestion\unzipped\CT-KIDNEY-DATASET-Normal-Cyst-Tumor-Stone\CT-KIDNEY-DATASET-Normal-Cyst-Tumor-Stone"
+            
+            create_directories([Path(training_config.root_dir)])
+
+            return TrainingConfig(
+                root_dir=Path(training_config.root_dir),
+                trained_model_path=Path(training_config.trained_model_path),
+                updated_base_model_path=Path(updated_base_model_path), 
+                training_data=Path(training_data),
+                params_epochs=params.epochs,
+                params_batch_size=params.batch_size,
+                params_is_augmentation=params.is_augmentation, 
+                params_image_size=list(params.image_size)
+            )

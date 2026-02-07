@@ -1,16 +1,14 @@
-AUGMENTATION: true
-
-IMAGE_SIZE:
+is_augmentation: true  # Changed from 'augmentation' to match the code
+image_size:
   - 224
   - 224
   - 3
-
-BATCH_SIZE: 16
-EPOCHS: 10
-LEARNING_RATE: 0.001
-
-WEIGHTS: imagenet
-INCLUDE_TOP: false
-CLASSES: 4
-FREEZE_ALL: true
-FREEZE_TILL: null
+batch_size: 16
+epochs: 1
+learning_rate: 0.01
+# ... rest of your file
+weights: imagenet
+include_top: false
+classes: 4
+freeze_all: true
+freeze_till: null
