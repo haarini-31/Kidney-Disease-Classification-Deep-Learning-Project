@@ -14,7 +14,7 @@ class EvaluationPipeline:
         evaluation = Evaluation(config=self.evaluation_config)
         evaluation.evaluate()
         evaluation.save_score()
-        evaluation.log_into_mlflow()
+       # evaluation.log_into_mlflow()
 
 if __name__ == "__main__":
     try:
