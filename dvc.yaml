@@ -1,0 +1,50 @@
+stages:
+  data_ingestion:
+    cmd: python src/cnnClassifier/pipeline/stage_01_data_ingestion.py
+    deps:
+      - src/cnnClassifier/pipeline/stage_01_data_ingestion.py
+      - configs/config.yaml
+    outs:
+      - artifacts/data_ingestion/unzipped/CT-KIDNEY-DATASET-Normal-Cyst-Tumor-Stone
+
+  prepare_base_model:
+    cmd: python src/cnnClassifier/pipeline/stage_02_prepare_base_model.py
+    deps:
+      - src/cnnClassifier/pipeline/stage_02_prepare_base_model.py
+      - configs/config.yaml
+    params:
+      - image_size
+      - learning_rate
+      - include_top
+      - weights
+      - classes
+    outs:
+      - artifacts/prepare_base_model/base_model.h5
+
+  training:
+    cmd: python src/cnnClassifier/pipeline/stage_03_model_training.py
+    deps:
+      - src/cnnClassifier/pipeline/stage_03_model_training.py
+      - configs/config.yaml
+      - artifacts/prepare_base_model/base_model.h5
+      - artifacts/data_ingestion/unzipped/CT-KIDNEY-DATASET-Normal-Cyst-Tumor-Stone
+    params:
+      - image_size
+      - batch_size
+      - epochs
+      - is_augmentation
+    outs:
+      - artifacts/training/model.h5
+
+  evaluation:
+    cmd: python src/cnnClassifier/pipeline/stage_04_model_evaluation.py
+    deps:
+      - src/cnnClassifier/pipeline/stage_04_model_evaluation.py
+      - configs/config.yaml
+      - artifacts/training/model.h5
+    params:
+      - image_size
+      - batch_size
+    metrics:
+      - scores.json:
+          cache: false

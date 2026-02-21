@@ -1,7 +1,8 @@
 import os
 from pathlib import Path
 
-from cnnClassifier.utils.common import read_yaml, create_directories
+from cnnClassifier.utils.common import read_yaml, create_directories, save_json
+from cnnClassifier.entity.data_ingestion_config import EvaluationConfig
 from cnnClassifier.entity.data_ingestion_config import DataIngestionConfig, TrainingConfig
 from cnnClassifier.entity.data_ingestion_config import PrepareBaseModelConfig
 from cnnClassifier.constants import *
@@ -85,3 +86,14 @@ class ConfigurationManager:
                 params_is_augmentation=params.is_augmentation, 
                 params_image_size=list(params.image_size)
             )
+    
+    def get_evaluation_config(self) -> EvaluationConfig:
+        evaluation_config = EvaluationConfig(
+            path_of_model=Path(self.config.training.trained_model_path),
+            training_data=Path(self.config.training.training_data),
+            all_params=self.params,
+            mlflow_uri="https://dagshub.com/haarini-31/Kidney-Disease-Classification-Deep-Learning-Project.mlflow",
+            params_image_size=self.params.image_size,
+            params_batch_size=self.params.batch_size
+        )
+        return evaluation_config

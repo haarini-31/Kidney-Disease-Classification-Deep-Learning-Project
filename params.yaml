@@ -5,7 +5,7 @@ image_size:
   - 3
 batch_size: 16
 epochs: 1
-learning_rate: 0.01
+learning_rate: 0.02
 # ... rest of your file
 weights: imagenet
 include_top: false
