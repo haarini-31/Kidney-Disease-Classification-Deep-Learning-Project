@@ -56,6 +56,8 @@ class Scan(db.Model):
     study_type = db.Column(db.String(100), default='Kidney CT')
     scan_date = db.Column(db.DateTime, default=datetime.utcnow)
     image_path = db.Column(db.String(255), nullable=True)
+    image_data = db.Column(db.LargeBinary, nullable=True)
+    image_mimetype = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships

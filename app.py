@@ -211,10 +211,26 @@ def patient_profile(id):
 @app.route('/uploads/<filename>')
 @login_required
 def uploaded_file(filename):
+    # 1. Check if database contains image data
+    scan = Scan.query.filter_by(image_path=filename).first()
+    if scan and scan.image_data:
+        from flask import send_file
+        import io
+        return send_file(
+            io.BytesIO(scan.image_data),
+            mimetype=scan.image_mimetype or 'image/jpeg'
+        )
+
+    # 2. Check static demo scans
     demo_dir = os.path.join(app.root_path, 'static', 'demo_scans')
     if os.path.exists(os.path.join(demo_dir, filename)):
         return send_from_directory(demo_dir, filename)
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+    # 3. Check local uploads folder fallback
+    if os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], filename)):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+    return "Image not found", 404
 
 @app.route('/scan/new/<int:patient_id>', methods=['GET', 'POST'])
 @login_required
@@ -233,7 +249,10 @@ def new_scan(patient_id):
             
         if file and allowed_file(file.filename):
             try:
-                # 1. Save Image
+                # 1. Read bytes and save Image temporarily for inference
+                file_bytes = file.read()
+                file.seek(0)
+                
                 ext = file.filename.rsplit('.', 1)[1].lower()
                 unique_filename = f"{uuid.uuid4().hex}.{ext}"
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
@@ -249,13 +268,15 @@ def new_scan(patient_id):
                 db.session.add(encounter)
                 db.session.flush() # get encounter.id
                 
-                # 3. Save Scan Record
+                # 3. Save Scan Record with BLOB data
                 scan = Scan(
                     patient_id=patient.id, 
                     encounter_id=encounter.id,
                     uploaded_by=session['user_id'],
                     study_type=study_type, 
-                    image_path=unique_filename
+                    image_path=unique_filename,
+                    image_data=file_bytes,
+                    image_mimetype=file.mimetype
                 )
                 db.session.add(scan)
                 db.session.commit()
@@ -276,6 +297,13 @@ def new_scan(patient_id):
                 )
                 db.session.add(ai_res)
                 db.session.commit()
+                
+                # 6. Clean up temporary file to save space on ephemeral disk
+                try:
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                except Exception as clean_err:
+                    print(f"Warning: Could not clean up temporary file {file_path}: {clean_err}")
                 
                 flash('AI Analysis completed.', 'success')
                 return redirect(url_for('scan_result', scan_id=scan.id))
