@@ -101,6 +101,7 @@
                     <i class="ph-fill ph-brain text-blue-600 text-xl"></i>
                     <h2 class="text-sm font-bold text-slate-900 tracking-tight">AI Classification</h2>
                 </div>
+                {% if scan.ai_result %}
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Prediction</p>
@@ -111,6 +112,18 @@
                         <p class="text-xl font-bold text-slate-900">{{ "%.2f"|format(scan.ai_result.confidence * 100) }}%</p>
                     </div>
                 </div>
+                {% else %}
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Prediction</p>
+                        <p class="text-xl font-bold text-amber-600">Pending / Unavailable</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Confidence</p>
+                        <p class="text-xl font-bold text-slate-500">N/A</p>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
 
