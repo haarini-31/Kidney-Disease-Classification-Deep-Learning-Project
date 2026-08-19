@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">AI Model Architecture</h1>
+        <p class="text-slate-500 mt-1 text-sm">Technical documentation for the VGG16 Transfer Learning model.</p>
+    </div>
+
+    <!-- Overview -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-8">
+        <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                <i class="ph-fill ph-cpu text-2xl"></i>
+            </div>
+            <div>
+                <h2 class="text-lg font-bold text-slate-900">VGG16 Transfer Learning</h2>
+                <p class="text-sm text-slate-500">Deep Convolutional Neural Network for image classification.</p>
+            </div>
+        </div>
+
+        <div class="prose prose-slate max-w-none text-sm text-slate-600">
+            <p>
+                The current implementation of RenalScan AI utilizes a customized VGG16 architecture. 
+                Transfer learning was employed by utilizing pre-trained ImageNet weights, which allows the model to leverage robust, generalized feature extraction capabilities (edges, textures, shapes) before fine-tuning the dense layers specifically for kidney CT scans.
+            </p>
+            
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 my-6 font-mono text-xs overflow-x-auto text-slate-700">
+CT Image
+   ↓
+224 × 224 preprocessing
+   ↓
+VGG16 (Base Layers)
+   ↓
+Feature extraction
+   ↓
+Flatten / Dense layer
+   ↓
+Softmax Activation
+   ↓
+4 Target Classes
+            </div>
+
+            <h3 class="font-bold text-slate-900 mt-8 mb-3">Target Classes</h3>
+            <ul class="grid grid-cols-2 sm:grid-cols-4 gap-4 pl-0 list-none mb-8">
+                <li class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center"><strong class="text-slate-900 block">Cyst</strong></li>
+                <li class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center"><strong class="text-slate-900 block">Normal</strong></li>
+                <li class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center"><strong class="text-slate-900 block">Stone</strong></li>
+                <li class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center"><strong class="text-slate-900 block">Tumor</strong></li>
+            </ul>
+
+            <h3 class="font-bold text-slate-900 mt-8 mb-3">Technical Stack</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-8 mb-8">
+                <div class="flex items-center gap-2">
+                    <i class="ph-fill ph-check-circle text-emerald-500"></i> Python 3.10
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="ph-fill ph-check-circle text-emerald-500"></i> TensorFlow / Keras
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="ph-fill ph-check-circle text-emerald-500"></i> VGG16
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="ph-fill ph-check-circle text-emerald-500"></i> Flask Framework
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="ph-fill ph-check-circle text-emerald-500"></i> SQLAlchemy ORM
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="ph-fill ph-check-circle text-emerald-500"></i> SQLite Database
+                </div>
+            </div>
+
+            <h3 class="font-bold text-slate-900 mt-8 mb-3">MLOps Infrastructure</h3>
+            <div class="space-y-4">
+                <div class="flex gap-4">
+                    <div class="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 font-bold">1</div>
+                    <div>
+                        <strong class="text-slate-900">DVC (Data Version Control):</strong> 
+                        Used to pipeline the training workflow (ingestion, preprocessing, training, evaluation) and version the large underlying datasets and model binaries (`model.h5`).
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 font-bold">2</div>
+                    <div>
+                        <strong class="text-slate-900">MLflow:</strong> 
+                        Tracks experiment runs, hyperparameters (epochs, learning rate), and resulting metrics (loss, accuracy) to ensure reproducibility.
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 font-bold">3</div>
+                    <div>
+                        <strong class="text-slate-900">DagsHub:</strong> 
+                        Provides the remote remote storage backend for the DVC pipeline and hosts the MLflow tracking server.
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
+                <i class="ph-fill ph-warning-circle text-amber-600 text-xl shrink-0 mt-0.5"></i>
+                <p class="text-amber-800 text-xs leading-relaxed m-0">
+                    <strong>Model Status:</strong> The currently deployed `model.h5` is utilized strictly for UI/UX and integration testing. Clinical accuracy metrics are intentionally withheld pending a final retraining phase resolving data-leakage and pipeline stabilization. This prototype is not clinically validated.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

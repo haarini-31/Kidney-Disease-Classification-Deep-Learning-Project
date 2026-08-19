@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Welcome section -->
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-sm p-8 mb-8 text-white flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight mb-2">Welcome back, {{ user_name }}!</h1>
+            <p class="text-blue-100 max-w-xl text-sm leading-relaxed">
+                RenalScan AI assists in the early detection and classification of kidney abnormalities using CT imaging. You are currently logged in as a <strong class="text-white">{{ user_role }}</strong>.
+            </p>
+        </div>
+        <div class="shrink-0 flex gap-3">
+            <a href="{{ url_for('patients') }}" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-medium py-2.5 px-5 rounded-lg transition-colors flex items-center gap-2 text-sm">
+                <i class="ph ph-users"></i> Patient List
+            </a>
+            <a href="{{ url_for('new_patient') }}" class="bg-white text-blue-600 hover:bg-slate-50 font-medium py-2.5 px-5 rounded-lg transition-colors shadow-sm flex items-center gap-2 text-sm">
+                <i class="ph-bold ph-plus"></i> Add Patient
+            </a>
+        </div>
+    </div>
+
+    <!-- Database Statistics -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col items-center justify-center text-center">
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Total Patients</p>
+            <p class="text-4xl font-black text-slate-900">{{ total_patients }}</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col items-center justify-center text-center">
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Total Analyses</p>
+            <p class="text-4xl font-black text-blue-600">{{ total_analyses }}</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col items-center justify-center text-center">
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Pending Reviews</p>
+            <p class="text-4xl font-black {% if pending_reviews > 0 %}text-amber-500{% else %}text-slate-900{% endif %}">{{ pending_reviews }}</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col items-center justify-center text-center">
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Completed Reports</p>
+            <p class="text-4xl font-black text-emerald-600">{{ completed_reports }}</p>
+        </div>
+    </div>
+
+    <!-- Recent Activity & Quick Actions -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <i class="ph-fill ph-clock-counter-clockwise text-blue-600"></i> Recent Scans
+                </h2>
+                <a href="{{ url_for('history') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">View All &rarr;</a>
+            </div>
+            
+            {% if recent_activity %}
+            <div class="divide-y divide-slate-100">
+                {% for scan in recent_activity %}
+                <div class="p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
+                    <div class="w-12 h-12 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center shrink-0">
+                        <i class="ph ph-scan text-xl text-slate-500"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <a href="{{ url_for('patient_profile', id=scan.patient.id) }}" class="font-bold text-slate-900 hover:text-blue-600 truncate">{{ scan.patient.name }}</a>
+                            <span class="text-xs text-slate-500">{{ scan.scan_date.strftime('%Y-%m-%d') }}</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-xs">
+                            <span class="text-slate-600">{{ scan.study_type }}</span>
+                            {% if scan.ai_result %}
+                            <span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-medium">{{ scan.ai_result.prediction }}</span>
+                            {% endif %}
+                            {% if scan.review %}
+                                <span class="px-2 py-0.5 rounded {% if scan.review.status.startswith('Agree') %}bg-emerald-50 text-emerald-700{% elif scan.review.status.startswith('Disagree') %}bg-red-50 text-red-700{% else %}bg-amber-50 text-amber-700{% endif %} font-medium">{{ scan.review.status }}</span>
+                            {% else %}
+                                <span class="px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-medium">Pending Review</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="shrink-0 flex items-center gap-2">
+                        {% if scan.report %}
+                            <a href="{{ url_for('report', scan_id=scan.id) }}" class="text-xs font-medium px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg transition-colors">Report</a>
+                        {% else %}
+                            <a href="{{ url_for('scan_result', scan_id=scan.id) }}" class="text-xs font-medium px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg transition-colors">Analysis</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="p-12 text-center">
+                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="ph ph-ghost text-3xl text-slate-400"></i>
+                </div>
+                <h3 class="text-sm font-bold text-slate-900 mb-1">No Activity Yet</h3>
+                <p class="text-xs text-slate-500 mb-4">Register a patient and upload a scan to begin.</p>
+                <a href="{{ url_for('new_patient') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">Add Demo Patient &rarr;</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden h-fit">
+            <div class="p-6 border-b border-slate-100">
+                <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <i class="ph-fill ph-lightning text-amber-500"></i> Quick Actions
+                </h2>
+            </div>
+            <div class="p-2 space-y-1">
+                <a href="{{ url_for('new_patient') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors group">
+                    <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        <i class="ph ph-user-plus text-lg"></i>
+                    </div>
+                    <div>
+                        <strong class="block text-sm text-slate-900">Add Patient</strong>
+                        <span class="text-xs text-slate-500">Register new patient</span>
+                    </div>
+                </a>
+                <a href="{{ url_for('patients') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors group">
+                    <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        <i class="ph ph-scan text-lg"></i>
+                    </div>
+                    <div>
+                        <strong class="block text-sm text-slate-900">New Analysis</strong>
+                        <span class="text-xs text-slate-500">Upload and process CT</span>
+                    </div>
+                </a>
+                <a href="{{ url_for('reports_list') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors group">
+                    <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                        <i class="ph ph-file-pdf text-lg"></i>
+                    </div>
+                    <div>
+                        <strong class="block text-sm text-slate-900">View Reports</strong>
+                        <span class="text-xs text-slate-500">Access final PDFs</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

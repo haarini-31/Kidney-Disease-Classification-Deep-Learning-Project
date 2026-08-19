@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto pb-12">
+    <div class="mb-8 text-center sm:text-left">
+        <h1 class="text-3xl font-black text-slate-900 tracking-tight">About RenalScan AI</h1>
+        <p class="text-slate-500 mt-2 text-base">AI-Assisted Kidney Imaging & Reporting System</p>
+    </div>
+
+    <!-- About Content -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        
+        <div class="p-8 sm:p-10 border-b border-slate-100">
+            <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <i class="ph-fill ph-target text-blue-600"></i> The Problem
+            </h2>
+            <p class="text-slate-600 text-sm leading-relaxed mb-0">
+                Medical imaging data, particularly CT scans, require immense time and expertise to accurately review. Radiologists face high workloads, which can lead to fatigue and potential diagnostic delays. There is a strong need for assistive technologies that can quickly pre-screen and highlight potential abnormalities, allowing medical professionals to prioritize and focus their attention where it's most needed.
+            </p>
+        </div>
+
+        <div class="p-8 sm:p-10 border-b border-slate-100 bg-slate-50">
+            <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <i class="ph-fill ph-lightbulb text-amber-500"></i> The Solution
+            </h2>
+            <p class="text-slate-600 text-sm leading-relaxed mb-0">
+                RenalScan AI provides a streamlined, AI-assisted workflow. By integrating deep learning directly into the clinical interface, the system processes uploaded kidney CT scans and provides an immediate initial classification. This serves as a "second set of eyes" for the radiologist, bridging the gap between raw medical imagery and final clinical reporting.
+            </p>
+        </div>
+
+        <div class="p-8 sm:p-10 border-b border-slate-100">
+            <h2 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                <i class="ph-fill ph-git-branch text-purple-600"></i> The Workflow
+            </h2>
+            
+            <div class="space-y-6 text-sm">
+                <div class="flex gap-4">
+                    <div class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center shrink-0 font-bold">1</div>
+                    <div>
+                        <strong class="text-slate-900 block mb-1">Patient Management</strong> 
+                        <span class="text-slate-600">Securely register and manage patient demographics and histories within the SQLite database.</span>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center shrink-0 font-bold">2</div>
+                    <div>
+                        <strong class="text-slate-900 block mb-1">Scan Upload</strong> 
+                        <span class="text-slate-600">Upload localized kidney CT imagery directly into the patient's workflow profile.</span>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0 font-bold">3</div>
+                    <div>
+                        <strong class="text-slate-900 block mb-1">AI Inference</strong> 
+                        <span class="text-slate-600">The VGG16 model automatically analyzes the image, outputting a prediction (Cyst, Normal, Stone, Tumor) and a confidence probability.</span>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 font-bold">4</div>
+                    <div>
+                        <strong class="text-slate-900 block mb-1">Human Review</strong> 
+                        <span class="text-slate-600">A credentialed medical professional (Doctor/Radiologist) reviews the scan, agrees/disagrees with the AI, and adds clinical notes and recommendations.</span>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center shrink-0 font-bold">5</div>
+                    <div>
+                        <strong class="text-slate-900 block mb-1">Final Reporting</strong> 
+                        <span class="text-slate-600">The system merges the initial AI output and the final human review into a cohesive, printable PDF medical report.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-8 sm:p-10 border-t-4 border-slate-900">
+            <h2 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                <i class="ph-fill ph-warning text-slate-900"></i> Research & Demonstration Disclaimer
+            </h2>
+            <p class="text-slate-600 text-sm leading-relaxed mb-0">
+                This application is an educational and research prototype. It is not a certified medical device and has not received FDA or equivalent clinical approval. The AI classifications are assistive research outputs and <strong>do not constitute a medical diagnosis</strong>. All AI-generated results must be reviewed, verified, and interpreted by a qualified healthcare professional.
+            </p>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <!-- Breadcrumbs -->
+    <div class="flex items-center gap-2 text-sm text-slate-500 mb-4">
+        <a href="{{ url_for('patients') }}" class="hover:text-blue-600 transition-colors">Patients</a>
+        <i class="ph ph-caret-right text-xs"></i>
+        <a href="{{ url_for('patient_profile', id=patient.id) }}" class="hover:text-blue-600 transition-colors">{{ patient.name }}</a>
+        <i class="ph ph-caret-right text-xs"></i>
+        <span class="text-slate-900 font-medium">New Analysis</span>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="flex items-center justify-between mb-8 overflow-x-auto pb-2 text-xs font-medium uppercase tracking-wider">
+        <div class="flex items-center gap-2 text-emerald-600 shrink-0"><i class="ph-fill ph-check-circle text-base"></i> 01 Patient</div>
+        <div class="h-px bg-emerald-200 flex-1 mx-4 min-w-[20px]"></div>
+        <div class="flex items-center gap-2 text-blue-600 shrink-0"><i class="ph-fill ph-scan text-base"></i> 02 Scan</div>
+        <div class="h-px bg-slate-200 flex-1 mx-4 min-w-[20px]"></div>
+        <div class="flex items-center gap-2 text-slate-400 shrink-0">03 AI Analysis</div>
+        <div class="h-px bg-slate-200 flex-1 mx-4 min-w-[20px]"></div>
+        <div class="flex items-center gap-2 text-slate-400 shrink-0">04 Review</div>
+        <div class="h-px bg-slate-200 flex-1 mx-4 min-w-[20px]"></div>
+        <div class="flex items-center gap-2 text-slate-400 shrink-0">05 Report</div>
+    </div>
+
+    <h1 class="text-2xl font-bold text-slate-900 tracking-tight mb-8">Start New Analysis</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="mb-6 p-4 rounded-lg flex items-start gap-3 text-sm {% if category == 'error' %}bg-red-50 text-red-700 border border-red-100{% else %}bg-green-50 text-green-700 border border-green-100{% endif %}">
+                    <i class="ph-fill {% if category == 'error' %}ph-warning-circle{% else %}ph-check-circle{% endif %} text-lg mt-0.5"></i>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="text-base font-semibold text-slate-900">Patient Information</h2>
+            <span class="bg-slate-100 text-slate-600 text-xs font-semibold px-2.5 py-1 rounded-full">ID: {{ patient.patient_id }}</span>
+        </div>
+        <div class="p-6 bg-slate-50 border-b border-slate-100">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                    <span class="block text-slate-500 mb-1">Name</span>
+                    <strong class="text-slate-900">{{ patient.name }}</strong>
+                </div>
+                <div>
+                    <span class="block text-slate-500 mb-1">Age</span>
+                    <strong class="text-slate-900">{{ patient.age if patient.age else '-' }}</strong>
+                </div>
+                <div>
+                    <span class="block text-slate-500 mb-1">Gender</span>
+                    <strong class="text-slate-900">{{ patient.gender if patient.gender else '-' }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" class="p-6 md:p-8">
+            <div class="space-y-6">
+                <!-- Study Type -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">Study Type</label>
+                    <input type="text" name="study_type" value="Kidney CT" 
+                        class="block w-full md:w-1/2 px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all text-slate-900">
+                </div>
+
+                <!-- Upload Area -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">Upload Kidney CT Image <span class="text-red-500">*</span></label>
+                    <div class="mt-2 flex justify-center rounded-xl border-2 border-dashed border-slate-300 px-6 py-10 bg-slate-50 hover:bg-slate-100 transition-colors relative" id="drop-zone">
+                        <div class="text-center" id="upload-prompt">
+                            <i class="ph ph-upload-simple text-4xl text-slate-400 mb-3 mx-auto"></i>
+                            <div class="mt-2 flex text-sm leading-6 text-slate-600 justify-center">
+                                <label for="file-upload" class="relative cursor-pointer rounded-md font-semibold text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-600 focus-within:ring-offset-2">
+                                    <span>Upload a file</span>
+                                    <input id="file-upload" name="file" type="file" accept="image/jpeg, image/png" class="sr-only" required onchange="previewImage(event)">
+                                </label>
+                                <p class="pl-1">or drag and drop</p>
+                            </div>
+                            <p class="text-xs leading-5 text-slate-500 mt-1">PNG, JPG up to 16MB</p>
+                        </div>
+                        
+                        <!-- Preview Container -->
+                        <div id="image-preview-container" class="hidden w-full max-w-sm mx-auto text-center">
+                            <img id="image-preview" src="#" alt="Preview" class="mx-auto max-h-64 rounded-lg shadow-sm border border-slate-200 mb-4">
+                            <p id="file-name" class="text-sm font-medium text-slate-700 mb-3 truncate"></p>
+                            <button type="button" onclick="clearPreview()" id="remove-img-btn" class="text-sm text-red-600 hover:text-red-800 font-medium">Remove image</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Loading Indicator -->
+            <div id="loading-state" class="hidden mt-6 bg-blue-50 border border-blue-100 rounded-lg p-4 flex flex-col items-center justify-center">
+                <i class="ph ph-spinner animate-spin text-3xl text-blue-600 mb-2"></i>
+                <p class="text-sm font-bold text-slate-900">Analyzing kidney image...</p>
+                <p class="text-xs text-slate-500">Extracting features using the VGG16 model</p>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-end gap-3">
+                <a href="{{ url_for('patient_profile', id=patient.id) }}" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors" id="cancel-btn">Cancel</a>
+                <button type="submit" id="submit-btn" disabled class="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-medium py-2 px-6 rounded-lg transition-colors shadow-sm flex items-center gap-2">
+                    <i class="ph ph-brain"></i>
+                    <span>Run AI Analysis</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('image-preview').src = e.target.result;
+                document.getElementById('file-name').textContent = file.name;
+                document.getElementById('upload-prompt').classList.add('hidden');
+                document.getElementById('image-preview-container').classList.remove('hidden');
+                document.getElementById('drop-zone').classList.remove('py-10');
+                document.getElementById('drop-zone').classList.add('py-6');
+                document.getElementById('submit-btn').disabled = false;
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function clearPreview() {
+        document.getElementById('file-upload').value = '';
+        document.getElementById('upload-prompt').classList.remove('hidden');
+        document.getElementById('image-preview-container').classList.add('hidden');
+        document.getElementById('drop-zone').classList.add('py-10');
+        document.getElementById('drop-zone').classList.remove('py-6');
+        document.getElementById('submit-btn').disabled = true;
+    }
+
+    document.querySelector('form').addEventListener('submit', function() {
+        document.getElementById('submit-btn').disabled = true;
+        document.getElementById('submit-btn').innerHTML = '<i class="ph ph-spinner animate-spin"></i><span>Analyzing...</span>';
+        document.getElementById('remove-img-btn').classList.add('hidden');
+        document.getElementById('cancel-btn').classList.add('pointer-events-none', 'opacity-50');
+        document.getElementById('loading-state').classList.remove('hidden');
+        document.getElementById('loading-state').classList.add('flex');
+    });
+</script>
+{% endblock %}

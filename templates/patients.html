@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+    <div>
+        <div class="flex items-center gap-2 text-sm text-slate-500 mb-1">
+            <a href="{{ url_for('dashboard') }}" class="hover:text-blue-600 transition-colors">Dashboard</a>
+            <i class="ph ph-caret-right text-xs"></i>
+            <span class="text-slate-900 font-medium">Patients</span>
+        </div>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Patient Directory</h1>
+    </div>
+    <div class="flex items-center gap-3">
+        <form method="GET" action="{{ url_for('patients') }}" class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i class="ph ph-magnifying-glass"></i>
+            </div>
+            <input type="text" name="q" value="{{ search }}" placeholder="Search ID or Name..." 
+                class="block w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all text-sm">
+        </form>
+        <a href="{{ url_for('new_patient') }}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-sm text-sm whitespace-nowrap">
+            <i class="ph ph-plus"></i>
+            <span>Add Patient</span>
+        </a>
+    </div>
+</div>
+
+{% if not patients and not search %}
+<!-- Empty State -->
+<div class="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
+    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-50 text-slate-400 mb-4">
+        <i class="ph ph-users text-3xl"></i>
+    </div>
+    <h3 class="text-lg font-semibold text-slate-900 mb-1">No patients registered</h3>
+    <p class="text-slate-500 mb-6 max-w-sm mx-auto">Get started by registering a new patient profile to begin adding scan analyses and clinical reports.</p>
+    <a href="{{ url_for('new_patient') }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors shadow-sm">
+        <i class="ph ph-plus text-lg"></i>
+        <span>Add Your First Patient</span>
+    </a>
+</div>
+{% elif not patients and search %}
+<div class="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
+    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-50 text-slate-400 mb-4">
+        <i class="ph ph-magnifying-glass text-3xl"></i>
+    </div>
+    <h3 class="text-lg font-semibold text-slate-900 mb-1">No results found</h3>
+    <p class="text-slate-500 mb-6">No patients match the search query "{{ search }}".</p>
+    <a href="{{ url_for('patients') }}" class="text-blue-600 hover:underline font-medium">Clear search</a>
+</div>
+{% else %}
+<!-- Patient List -->
+<div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-semibold">
+                    <th class="px-6 py-4">Patient ID</th>
+                    <th class="px-6 py-4">Name</th>
+                    <th class="px-6 py-4">Age/Gender</th>
+                    <th class="px-6 py-4">Registered</th>
+                    <th class="px-6 py-4 text-center">Scans</th>
+                    <th class="px-6 py-4 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for patient in patients %}
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-6 py-4 text-sm font-medium text-slate-900">{{ patient.patient_id }}</td>
+                    <td class="px-6 py-4 text-sm text-slate-600">{{ patient.name }}</td>
+                    <td class="px-6 py-4 text-sm text-slate-600">
+                        {{ patient.age if patient.age else '-' }} / {{ patient.gender if patient.gender else '-' }}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-500">{{ patient.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td class="px-6 py-4 text-sm text-center">
+                        <span class="inline-flex items-center justify-center bg-blue-50 text-blue-600 font-medium px-2.5 py-0.5 rounded-full text-xs">
+                            {{ patient.scans|length }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right text-sm">
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="{{ url_for('patient_profile', id=patient.id) }}" class="text-slate-500 hover:text-blue-600 font-medium px-2 py-1 transition-colors">View</a>
+                            <a href="{{ url_for('new_scan', patient_id=patient.id) }}" class="text-white bg-blue-600 hover:bg-blue-700 font-medium px-3 py-1.5 rounded-md transition-colors text-xs whitespace-nowrap">New Analysis</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

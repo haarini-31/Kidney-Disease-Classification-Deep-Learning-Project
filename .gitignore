@@ -18,3 +18,19 @@ __pycache__/
 # Logs
 logs/
 kidney_accessKeys.csv 
+
+# Database
+renalscan.db
+renalscan_pre_deployment.db
+renalscan_pre_deployment_backup.db
+
+# Uploads
+uploads/
+
+# Env & sensitive files
+.env
+.env.*
+
+# Force include model.h5
+!artifacts/training/model.h5
+

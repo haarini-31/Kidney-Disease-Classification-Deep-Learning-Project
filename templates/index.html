@@ -3,215 +3,744 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedAI | Kidney Diagnostic Portal</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>RenalScan AI | AI-Assisted Kidney Image Analysis</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons for modern aesthetic -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
     <style>
-        :root {
-            --medical-blue: #0c4a6e;
-            --brand-teal: #0d9488;
-            --bg-soft: #f8fafc;
-            --border-color: #e2e8f0;
+        body { font-family: 'Inter', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(226, 232, 240, 0.8);
         }
-
-        body {
-            background-color: var(--bg-soft);
-            color: #1e293b;
-            font-family: 'Public+Sans', sans-serif;
-            margin: 0;
-            padding: 0;
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-image: linear-gradient(135deg, #0284c7, #0ea5e9);
         }
-
-        /* Top Header */
-        .portal-header {
-            background: white;
-            padding: 10px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
+        .drag-active {
+            border-color: #0ea5e9 !important;
+            background-color: #f0f9ff !important;
         }
-
-        .brand-logo { font-weight: 800; color: var(--medical-blue); font-size: 1.4rem; }
-
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
-
-        .dashboard-layout {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 25px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid var(--border-color);
-        }
-
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 0.8rem; font-weight: 600; color: #64748b; margin-bottom: 5px; }
-        input[type="text"], select {
-            width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); box-sizing: border-box;
-        }
-
-        .section-header {
-            font-size: 0.9rem; font-weight: 700; color: var(--medical-blue);
-            margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px;
-            display: flex; align-items: center;
-        }
-        .section-header::after { content: ""; flex: 1; height: 1px; background: var(--border-color); margin-left: 10px; }
-
-        /* Viewer Area */
-        .viewer-box {
-            background: #000; border-radius: 8px; height: 450px;
-            display: flex; align-items: center; justify-content: center; position: relative;
-        }
-        #photo { max-width: 100%; max-height: 100%; border-radius: 4px; display: none; }
-
-        /* Diagnostic Result UI */
-        .result-panel {
-            background: #f1f5f9; border-radius: 8px; padding: 20px; text-align: center;
-            margin-top: 20px; border-left: 5px solid #cbd5e1;
-        }
-        .result-status { font-size: 2rem; font-weight: 800; margin: 10px 0; }
-
-        .btn-med {
-            width: 100%; padding: 12px; border-radius: 6px; border: none; font-weight: 700;
-            cursor: pointer; transition: 0.2s; margin-top: 10px;
-        }
-        .btn-main { background: var(--medical-blue); color: white; }
-        .btn-main:hover { background: #075985; }
+        .view-section { display: none; animation: fadeIn 0.3s ease-out forwards; }
+        .view-section.active { display: block; }
         
-        /* Scan Line Effect */
-        .scan-line {
-            position: absolute; width: 100%; height: 2px; background: #0ea5e9;
-            box-shadow: 0 0 10px #0ea5e9; top: 0; left: 0; display: none;
-            animation: scan 2s linear infinite; z-index: 10;
+        .loader {
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #0ea5e9;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            animation: spin 1s linear infinite;
         }
-        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Mobile Sidebar Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.5);
+            z-index: 40;
+            backdrop-filter: blur(2px);
+        }
+        .sidebar-overlay.active { display: block; }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 antialiased overflow-hidden flex h-screen">
 
-<header class="portal-header">
-    <div class="brand-logo">MED-AI PORTAL</div>
-    <div id="date-display" style="font-size: 0.8rem; color: #64748b;"></div>
-</header>
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay lg:hidden"></div>
 
-<div class="container">
-    <div class="dashboard-layout">
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="bg-white border-r border-slate-200 w-64 flex-shrink-0 h-full flex flex-col fixed lg:static z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out shadow-xl lg:shadow-none">
+        <div class="h-16 flex items-center px-6 border-b border-slate-100">
+            <i class="ph ph-activity text-2xl text-sky-600 mr-2"></i>
+            <span class="font-bold text-lg tracking-tight">RenalScan <span class="text-sky-600">AI</span></span>
+            <button id="close-sidebar" class="lg:hidden ml-auto text-slate-400 hover:text-slate-600">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
         
-        <div class="sidebar">
-            <div class="card">
-                <div class="section-header">Practitioner Info</div>
-                <div class="form-group">
-                    <label>DOCTOR NAME</label>
-                    <input type="text" id="doc_name" placeholder="Dr. Mahesh">
-                </div>
-                <div class="form-group">
-                    <label>DEPARTMENT</label>
-                    <select id="dept">
-                        <option>Radiology</option>
-                        <option>Nephrology</option>
-                        <option>Urology</option>
-                    </select>
-                </div>
+        <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
+            <a href="#dashboard" class="nav-link flex items-center px-4 py-3 text-sm font-medium rounded-lg text-sky-700 bg-sky-50 transition-colors" data-target="view-dashboard">
+                <i class="ph ph-squares-four text-lg mr-3"></i> Dashboard
+            </a>
+            <a href="#analyze" class="nav-link flex items-center px-4 py-3 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" data-target="view-analyze">
+                <i class="ph ph-scan text-lg mr-3"></i> Analyze
+            </a>
+            <a href="#history" class="nav-link flex items-center px-4 py-3 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" data-target="view-history">
+                <i class="ph ph-clock-counter-clockwise text-lg mr-3"></i> History
+            </a>
+            
+            <div class="pt-6 pb-2">
+                <p class="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Information</p>
+            </div>
+            
+            <a href="#model" class="nav-link flex items-center px-4 py-3 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" data-target="view-model">
+                <i class="ph ph-cpu text-lg mr-3"></i> Model Specs
+            </a>
+            <a href="#about" class="nav-link flex items-center px-4 py-3 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" data-target="view-about">
+                <i class="ph ph-info text-lg mr-3"></i> About
+            </a>
+        </nav>
+        
+        <div class="p-4 border-t border-slate-100">
+            <div class="bg-slate-50 rounded-lg p-4 text-xs text-slate-500 text-center border border-slate-200">
+                Research & Educational Use Only. Not for clinical diagnosis.
+            </div>
+        </div>
+    </aside>
 
-                <div class="section-header" style="margin-top: 30px;">Patient Session</div>
-                <div class="form-group">
-                    <label>PATIENT ID</label>
-                    <input type="text" id="patient_id" readonly>
+    <!-- Main Content Area -->
+    <main class="flex-1 h-full flex flex-col min-w-0 overflow-hidden relative">
+        <!-- Top Header for Mobile -->
+        <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 lg:hidden z-30 flex-shrink-0">
+            <div class="flex items-center">
+                <i class="ph ph-activity text-xl text-sky-600 mr-2"></i>
+                <span class="font-bold tracking-tight">RenalScan <span class="text-sky-600">AI</span></span>
+            </div>
+            <button id="open-sidebar" class="text-slate-500 hover:text-slate-800 p-2">
+                <i class="ph ph-list text-2xl"></i>
+            </button>
+        </header>
+
+        <!-- Scrollable Views Container -->
+        <div class="flex-1 overflow-y-auto p-4 md:p-8">
+            
+            <!-- VIEW: DASHBOARD -->
+            <section id="view-dashboard" class="view-section active max-w-5xl mx-auto">
+                <div class="mb-8">
+                    <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Welcome to RenalScan AI</h1>
+                    <p class="text-slate-500 mt-2">AI-Assisted Kidney Image Analysis for research and educational purposes.</p>
                 </div>
                 
-                <button class="btn-med btn-main" style="background: var(--brand-teal);" id="uload">SELECT SCAN FILE</button>
-                <button class="btn-med" style="background: #f1f5f9; color: #475569;" id="reset-btn">RESET PORTAL</button>
-                <input type="file" id="fileinput" style="display:none" accept="image/*">
-            </div>
-        </div>
-
-        <div class="main-content">
-            <div class="card">
-                <div class="section-header">Imaging Analytics</div>
-                <div class="viewer-box">
-                    <div class="scan-line" id="scanner"></div>
-                    <p id="wait-msg" style="color: #475569;">Awaiting scan upload...</p>
-                    <img src="" id="photo" />
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Hero Card -->
+                    <div class="lg:col-span-2 glass-card rounded-2xl p-8 bg-gradient-to-br from-white to-sky-50 relative overflow-hidden">
+                        <div class="relative z-10">
+                            <h2 class="text-xl font-bold text-slate-800 mb-2">Ready to classify a kidney CT scan?</h2>
+                            <p class="text-slate-600 mb-6 max-w-md leading-relaxed">
+                                Upload a standard CT image, and our VGG16-based deep learning model will analyze the structural features to predict one of four categories: Normal, Cyst, Stone, or Tumor.
+                            </p>
+                            <button class="nav-trigger bg-sky-600 hover:bg-sky-700 text-white font-medium py-3 px-6 rounded-lg shadow-sm transition-colors inline-flex items-center" data-target="view-analyze">
+                                Start New Analysis <i class="ph ph-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                        <i class="ph ph-scan text-[12rem] text-sky-100 absolute -bottom-10 -right-10 transform -rotate-12"></i>
+                    </div>
+                    
+                    <!-- Quick Stats / Info -->
+                    <div class="glass-card rounded-2xl p-6 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Project Architecture</h3>
+                            <ul class="space-y-4">
+                                <li class="flex items-center text-sm">
+                                    <div class="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mr-3"><i class="ph ph-brain"></i></div>
+                                    <div>
+                                        <p class="font-semibold text-slate-800">VGG16</p>
+                                        <p class="text-xs text-slate-500">AI Model</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-center text-sm">
+                                    <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mr-3"><i class="ph ph-image"></i></div>
+                                    <div>
+                                        <p class="font-semibold text-slate-800">224 × 224 RGB</p>
+                                        <p class="text-xs text-slate-500">Input Resolution</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-center text-sm">
+                                    <div class="w-8 h-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mr-3"><i class="ph ph-tag"></i></div>
+                                    <div>
+                                        <p class="font-semibold text-slate-800">4 Classes</p>
+                                        <p class="text-xs text-slate-500">Output Topography</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="result-panel" id="res-panel">
-                    <div style="font-size: 0.75rem; color: #64748b; font-weight: 700;">AI CLASSIFICATION REPORT</div>
-                    <div class="result-status" id="res-text">READY</div>
-                    <div id="report-footer" style="font-size: 0.7rem; color: #94a3b8;">No analysis performed yet.</div>
+                <!-- How it works diagram -->
+                <div class="mb-12">
+                    <h3 class="text-lg font-bold text-slate-800 mb-6">Analysis Workflow</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <div class="glass-card p-4 rounded-xl text-center flex flex-col items-center">
+                            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 mb-3">01</div>
+                            <h4 class="font-semibold text-sm mb-1">Upload</h4>
+                            <p class="text-xs text-slate-500">Select CT image</p>
+                        </div>
+                        <div class="glass-card p-4 rounded-xl text-center flex flex-col items-center">
+                            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 mb-3">02</div>
+                            <h4 class="font-semibold text-sm mb-1">Process</h4>
+                            <p class="text-xs text-slate-500">Resize & normalize</p>
+                        </div>
+                        <div class="glass-card p-4 rounded-xl text-center flex flex-col items-center">
+                            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 mb-3">03</div>
+                            <h4 class="font-semibold text-sm mb-1">Analyze</h4>
+                            <p class="text-xs text-slate-500">VGG16 extraction</p>
+                        </div>
+                        <div class="glass-card p-4 rounded-xl text-center flex flex-col items-center">
+                            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 mb-3">04</div>
+                            <h4 class="font-semibold text-sm mb-1">Classify</h4>
+                            <p class="text-xs text-slate-500">Softmax layer</p>
+                        </div>
+                        <div class="glass-card p-4 rounded-xl text-center flex flex-col items-center col-span-2 md:col-span-1">
+                            <div class="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center font-bold text-sky-600 mb-3">05</div>
+                            <h4 class="font-semibold text-sm mb-1 text-sky-700">Result</h4>
+                            <p class="text-xs text-slate-500">Return prediction</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: ANALYZE -->
+            <section id="view-analyze" class="view-section max-w-6xl mx-auto h-full flex flex-col">
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold text-slate-900">Analysis Workspace</h1>
+                    <p class="text-slate-500 mt-1">Upload and analyze kidney CT scans.</p>
                 </div>
 
-                <button class="btn-med btn-main" style="margin-top: 20px; font-size: 1rem;" id="send">RUN NEURAL ANALYSIS</button>
-            </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-[500px]">
+                    <!-- LEFT: UPLOAD -->
+                    <div class="glass-card rounded-2xl flex flex-col overflow-hidden border border-slate-200">
+                        <div class="p-4 border-b border-slate-100 bg-white/50 flex items-center">
+                            <i class="ph ph-upload-simple text-sky-600 text-lg mr-2"></i>
+                            <h2 class="font-semibold text-slate-800">Input Image</h2>
+                        </div>
+                        
+                        <div class="p-6 flex-1 flex flex-col">
+                            <div id="drop-zone" class="flex-1 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col items-center justify-center p-6 text-center cursor-pointer relative overflow-hidden group min-h-[300px]">
+                                
+                                <!-- Empty State -->
+                                <div id="upload-prompt" class="flex flex-col items-center">
+                                    <div class="w-16 h-16 mb-4 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-sky-500 group-hover:scale-110 transition-all">
+                                        <i class="ph ph-image text-3xl"></i>
+                                    </div>
+                                    <p class="text-sm font-semibold text-slate-700">Drag & drop CT image</p>
+                                    <p class="text-xs text-slate-500 mt-1">or click to browse</p>
+                                </div>
+
+                                <!-- Preview State -->
+                                <div id="preview-container" class="hidden absolute inset-0 bg-slate-100 flex items-center justify-center p-2">
+                                    <img id="image-preview" src="" alt="Preview" class="max-w-full max-h-full object-contain rounded shadow-sm">
+                                    <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <button id="remove-btn" class="bg-white/90 hover:bg-white text-rose-600 text-sm font-bold py-2 px-4 rounded-lg shadow-lg flex items-center transition-colors">
+                                            <i class="ph ph-trash mr-2"></i> Remove Image
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <input type="file" id="file-input" class="hidden" accept="image/jpeg, image/png, image/jpg">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: ANALYSIS STATE & RESULTS -->
+                    <div class="glass-card rounded-2xl flex flex-col overflow-hidden border border-slate-200">
+                        <div class="p-4 border-b border-slate-100 bg-white/50 flex items-center">
+                            <i class="ph ph-activity text-sky-600 text-lg mr-2"></i>
+                            <h2 class="font-semibold text-slate-800">Analysis Status</h2>
+                        </div>
+                        
+                        <div class="p-6 flex-1 flex flex-col bg-slate-50/30">
+                            
+                            <!-- Action Bar -->
+                            <button id="analyze-btn" disabled class="w-full bg-slate-800 hover:bg-slate-900 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-xl shadow-sm transition-colors flex justify-center items-center mb-6 text-sm">
+                                <i class="ph ph-play-circle text-lg mr-2"></i> Run AI Analysis
+                            </button>
+
+                            <!-- Error Alert -->
+                            <div id="error-alert" class="hidden mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-start">
+                                <i class="ph ph-warning-circle text-rose-600 text-lg mr-3 mt-0.5"></i>
+                                <div>
+                                    <h4 class="text-sm font-bold text-rose-800">Analysis Failed</h4>
+                                    <p id="error-msg" class="text-sm text-rose-600 mt-1"></p>
+                                </div>
+                            </div>
+
+                            <div class="flex-1 flex flex-col justify-center relative">
+                                
+                                <!-- Idle State -->
+                                <div id="state-idle" class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                                    <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-300 mb-4">
+                                        <i class="ph ph-check-circle text-3xl"></i>
+                                    </div>
+                                    <h3 class="text-slate-500 font-medium">Ready for analysis</h3>
+                                    <p class="text-slate-400 text-xs mt-2 max-w-xs">Upload an image and click run to begin feature extraction.</p>
+                                </div>
+
+                                <!-- Loading State -->
+                                <div id="state-loading" class="hidden absolute inset-0 flex flex-col items-center justify-center text-center">
+                                    <div class="loader mb-6"></div>
+                                    <h3 class="text-slate-800 font-bold text-lg">Analyzing kidney image...</h3>
+                                    <p class="text-slate-500 text-sm mt-2 max-w-xs">Passing tensor through VGG16 convolutional layers.</p>
+                                </div>
+
+                                <!-- Result State -->
+                                <div id="state-result" class="hidden absolute inset-0 flex flex-col justify-center">
+                                    <div class="text-center mb-6">
+                                        <span class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold uppercase tracking-widest mb-4">
+                                            <i class="ph ph-check-circle mr-1 text-sm"></i> Analysis Complete
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">AI Classification Result</div>
+                                        
+                                        <div class="flex items-end justify-between mb-6">
+                                            <div>
+                                                <p class="text-sm text-slate-500 font-medium mb-1">Predicted Class</p>
+                                                <p id="res-class" class="text-3xl font-extrabold text-slate-800">Normal</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="text-sm text-slate-500 font-medium mb-1">Confidence Score</p>
+                                                <p id="res-conf" class="text-2xl font-bold text-sky-600">98.42%</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: HISTORY -->
+            <section id="view-history" class="view-section max-w-5xl mx-auto">
+                <div class="flex justify-between items-end mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-900">Analysis History</h1>
+                        <p class="text-slate-500 mt-1">Locally stored records of your recent analyses.</p>
+                    </div>
+                    <button id="clear-history-btn" class="text-sm text-rose-600 hover:text-rose-700 font-medium flex items-center hidden">
+                        <i class="ph ph-trash mr-1"></i> Clear History
+                    </button>
+                </div>
+
+                <div class="glass-card rounded-2xl border border-slate-200 overflow-hidden min-h-[400px] flex flex-col">
+                    
+                    <!-- Empty History State -->
+                    <div id="history-empty" class="flex-1 flex flex-col items-center justify-center p-12 text-center">
+                        <div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 mb-4">
+                            <i class="ph ph-clock text-3xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-700">No analyses yet</h3>
+                        <p class="text-slate-500 text-sm mt-2 max-w-sm">Your completed analyses will appear here. History is stored securely in your browser's local storage.</p>
+                        <button class="nav-trigger mt-6 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors" data-target="view-analyze">
+                            Go to Analysis Workspace
+                        </button>
+                    </div>
+
+                    <!-- History List -->
+                    <div id="history-list" class="hidden flex-1 overflow-y-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50/80 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
+                                    <th class="p-4 font-semibold">Image</th>
+                                    <th class="p-4 font-semibold">Date & Time</th>
+                                    <th class="p-4 font-semibold">Prediction</th>
+                                    <th class="p-4 font-semibold text-right">Confidence</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-tbody" class="divide-y divide-slate-100 text-sm">
+                                <!-- JS Populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: MODEL -->
+            <section id="view-model" class="view-section max-w-4xl mx-auto">
+                <div class="mb-8">
+                    <h1 class="text-2xl font-bold text-slate-900">Model Architecture</h1>
+                    <p class="text-slate-500 mt-1">Technical specifications of the RenalScan AI classifier.</p>
+                </div>
+
+                <div class="glass-card rounded-2xl p-8 border border-slate-200 mb-8">
+                    <div class="flex items-center mb-6 pb-4 border-b border-slate-100">
+                        <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl mr-4"><i class="ph ph-network"></i></div>
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800">VGG16 Transfer Learning</h2>
+                            <p class="text-sm text-slate-500">Deep Convolutional Neural Network</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3">Analysis Pipeline</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-start">
+                                    <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold mr-3 mt-0.5 flex-shrink-0">1</span>
+                                    <p class="text-sm text-slate-600"><strong class="text-slate-800">Input Processing:</strong> The kidney CT image is loaded, converted to RGB, and resized exactly to 224 × 224 pixels.</p>
+                                </div>
+                                <div class="flex items-start">
+                                    <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold mr-3 mt-0.5 flex-shrink-0">2</span>
+                                    <p class="text-sm text-slate-600"><strong class="text-slate-800">Normalization:</strong> Pixel values are rescaled (1/255) to standardize the tensor distribution.</p>
+                                </div>
+                                <div class="flex items-start">
+                                    <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold mr-3 mt-0.5 flex-shrink-0">3</span>
+                                    <p class="text-sm text-slate-600"><strong class="text-slate-800">Feature Extraction:</strong> The image passes through the VGG16 base model (pre-trained weights), which applies successive convolutional blocks to extract hierarchical visual features.</p>
+                                </div>
+                                <div class="flex items-start">
+                                    <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold mr-3 mt-0.5 flex-shrink-0">4</span>
+                                    <p class="text-sm text-slate-600"><strong class="text-slate-800">Custom Classification:</strong> Features are flattened and passed through dense layers tailored specifically for this dataset.</p>
+                                </div>
+                                <div class="flex items-start">
+                                    <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold mr-3 mt-0.5 flex-shrink-0">5</span>
+                                    <p class="text-sm text-slate-600"><strong class="text-slate-800">Softmax Output:</strong> The final layer maps the probabilities across 4 categorical outcomes.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass-card rounded-2xl p-6 border border-slate-200">
+                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">Technical Specs</h3>
+                        <ul class="space-y-3 text-sm">
+                            <li class="flex justify-between py-2 border-b border-slate-50"><span class="text-slate-500">Architecture</span><span class="font-medium">VGG16</span></li>
+                            <li class="flex justify-between py-2 border-b border-slate-50"><span class="text-slate-500">Framework</span><span class="font-medium">TensorFlow / Keras</span></li>
+                            <li class="flex justify-between py-2 border-b border-slate-50"><span class="text-slate-500">Input Shape</span><span class="font-mono text-xs mt-0.5">(224, 224, 3)</span></li>
+                            <li class="flex justify-between py-2"><span class="text-slate-500">Loss Function</span><span class="font-mono text-xs mt-0.5">categorical_crossentropy</span></li>
+                        </ul>
+                    </div>
+                    <div class="glass-card rounded-2xl p-6 border border-slate-200">
+                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">Output Classes</h3>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-center"><i class="ph ph-dot-outline text-sky-500 text-lg mr-2"></i> Cyst</li>
+                            <li class="flex items-center"><i class="ph ph-dot-outline text-emerald-500 text-lg mr-2"></i> Normal</li>
+                            <li class="flex items-center"><i class="ph ph-dot-outline text-amber-500 text-lg mr-2"></i> Stone</li>
+                            <li class="flex items-center"><i class="ph ph-dot-outline text-rose-500 text-lg mr-2"></i> Tumor</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: ABOUT -->
+            <section id="view-about" class="view-section max-w-3xl mx-auto">
+                <div class="mb-8 text-center">
+                    <h1 class="text-2xl font-bold text-slate-900">About RenalScan AI</h1>
+                </div>
+
+                <div class="glass-card rounded-2xl p-8 border border-slate-200 text-slate-600 leading-relaxed space-y-6">
+                    <p>
+                        <strong class="text-slate-800">What is RenalScan AI?</strong><br>
+                        RenalScan AI is an AI-assisted kidney image classification application. It was developed as a deep-learning project to explore the capabilities of transfer learning (specifically the VGG16 network) in analyzing medical topography from Computed Tomography (CT) scans.
+                    </p>
+                    <p>
+                        The application provides a modern, fast, and responsive dashboard interface to interact securely with the underlying Python/TensorFlow backend inference engine.
+                    </p>
+                    
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-5 mt-8">
+                        <h3 class="text-amber-800 font-bold mb-2 flex items-center"><i class="ph ph-warning-octagon mr-2 text-lg"></i> Medical Disclaimer</h3>
+                        <p class="text-sm text-amber-700">
+                            This application, its underlying machine learning model, and its predictions are intended strictly for <strong>educational and research purposes only</strong>.
+                        </p>
+                        <p class="text-sm text-amber-700 mt-2">
+                            RenalScan AI does not provide medical diagnoses, nor does it replace professional medical evaluation, imagery review, or clinical judgment. Never make health or treatment decisions based on the output of this application.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
         </div>
+    </main>
 
-    </div>
-</div>
+    <!-- SPA and App Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Navigation & SPA Logic ---
+            const navLinks = document.querySelectorAll('.nav-link');
+            const navTriggers = document.querySelectorAll('.nav-trigger');
+            const sections = document.querySelectorAll('.view-section');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const openSidebarBtn = document.getElementById('open-sidebar');
+            const closeSidebarBtn = document.getElementById('close-sidebar');
 
-<script>
-    var base_data = "";
+            function navigateTo(targetId) {
+                // Update views
+                sections.forEach(sec => sec.classList.remove('active'));
+                const target = document.getElementById(targetId);
+                if(target) target.classList.add('active');
 
-    function generateID() {
-        return 'PX-' + Math.floor(Math.random() * 90000) + 10000;
-    }
-
-    $(document).ready(function(){
-        // Set initial data
-        $('#patient_id').val(generateID());
-        $('#date-display').text(new Date().toDateString().toUpperCase());
-
-        $('#uload').click(function(){ $('#fileinput').click(); });
-
-        $('#reset-btn').click(function(){
-            location.reload(); 
-        });
-
-        $("#fileinput").change(function(){
-            if(this.files && this.files[0]){
-                var reader = new FileReader();
-                reader.onload = function(e){
-                    $('#wait-msg').hide();
-                    $('#photo').attr('src', e.target.result).fadeIn();
-                    base_data = e.target.result.replace(/^data:image.+;base64,/, '');
-                };
-                reader.readAsDataURL(this.files[0]);
-            }
-        });
-
-        $('#send').click(function(){
-            if(!base_data) { alert("Please upload a scan."); return; }
-            
-            let doctor = $('#doc_name').val() || "Unassigned Practitioner";
-            $('#scanner').show();
-            $('#res-text').text('ANALYZING...').css('color', '#64748b');
-
-            $.ajax({
-                url : "/predict",
-                type: "post",
-                contentType: "application/json",
-                data: JSON.stringify({ image: base_data }),
-                success: function(res){
-                    $('#scanner').hide();
-                    if(res.prediction){
-                        let color = (res.prediction === "Normal") ? "#059669" : "#dc2626";
-                        $('#res-text').text(res.prediction.toUpperCase()).css('color', color);
-                        $('#res-panel').css('border-left', '5px solid ' + color);
-                        $('#report-footer').text('Report generated by ' + doctor + ' | AI confidence high.');
+                // Update nav links
+                navLinks.forEach(link => {
+                    if (link.getAttribute('data-target') === targetId) {
+                        link.classList.add('text-sky-700', 'bg-sky-50');
+                        link.classList.remove('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
+                    } else {
+                        link.classList.remove('text-sky-700', 'bg-sky-50');
+                        link.classList.add('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
                     }
-                },
-                error: function(){
-                    $('#scanner').hide();
-                    $('#res-text').text('ERROR').css('color', 'red');
+                });
+
+                // Close mobile sidebar if open
+                sidebar.classList.remove('translate-x-0');
+                sidebar.classList.add('-translate-x-full');
+                sidebarOverlay.classList.remove('active');
+            }
+
+            // Handle link clicks
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    navigateTo(link.getAttribute('data-target'));
+                });
+            });
+
+            // Handle button triggers (e.g. from dashboard)
+            navTriggers.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    navigateTo(btn.getAttribute('data-target'));
+                });
+            });
+
+            // Mobile sidebar toggle
+            openSidebarBtn.addEventListener('click', () => {
+                sidebar.classList.remove('-translate-x-full');
+                sidebar.classList.add('translate-x-0');
+                sidebarOverlay.classList.add('active');
+            });
+            closeSidebarBtn.addEventListener('click', () => {
+                sidebar.classList.remove('translate-x-0');
+                sidebar.classList.add('-translate-x-full');
+                sidebarOverlay.classList.remove('active');
+            });
+            sidebarOverlay.addEventListener('click', () => closeSidebarBtn.click());
+
+
+            // --- History Logic ---
+            const HISTORY_KEY = 'renalscan_history';
+            const historyEmpty = document.getElementById('history-empty');
+            const historyList = document.getElementById('history-list');
+            const historyTbody = document.getElementById('history-tbody');
+            const clearHistoryBtn = document.getElementById('clear-history-btn');
+
+            function getHistory() {
+                try {
+                    return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+                } catch { return []; }
+            }
+
+            function saveHistory(entry) {
+                const history = getHistory();
+                history.unshift(entry); // Add to top
+                // Keep only last 20 entries to save storage
+                if(history.length > 20) history.pop();
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+                renderHistory();
+            }
+
+            function clearHistory() {
+                localStorage.removeItem(HISTORY_KEY);
+                renderHistory();
+            }
+
+            function renderHistory() {
+                const history = getHistory();
+                if (history.length === 0) {
+                    historyEmpty.classList.remove('hidden');
+                    historyList.classList.add('hidden');
+                    clearHistoryBtn.classList.add('hidden');
+                } else {
+                    historyEmpty.classList.add('hidden');
+                    historyList.classList.remove('hidden');
+                    clearHistoryBtn.classList.remove('hidden');
+                    
+                    historyTbody.innerHTML = '';
+                    history.forEach(item => {
+                        const tr = document.createElement('tr');
+                        const date = new Date(item.timestamp).toLocaleString();
+                        
+                        // Color styling
+                        let pColor = item.prediction.toLowerCase() === 'normal' ? 'text-emerald-700 bg-emerald-50' : 'text-rose-700 bg-rose-50';
+                        
+                        tr.innerHTML = `
+                            <td class="p-4 whitespace-nowrap">
+                                <img src="${item.thumbnail}" class="w-12 h-12 object-cover rounded shadow-sm border border-slate-200">
+                            </td>
+                            <td class="p-4 whitespace-nowrap text-slate-600">${date}</td>
+                            <td class="p-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold ${pColor}">
+                                    ${item.prediction}
+                                </span>
+                            </td>
+                            <td class="p-4 whitespace-nowrap text-right font-medium text-slate-800">
+                                ${(item.confidence * 100).toFixed(2)}%
+                            </td>
+                        `;
+                        historyTbody.appendChild(tr);
+                    });
+                }
+            }
+
+            clearHistoryBtn.addEventListener('click', clearHistory);
+            renderHistory(); // Initial render
+
+
+            // --- Upload & Analysis Logic ---
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-input');
+            const uploadPrompt = document.getElementById('upload-prompt');
+            const previewContainer = document.getElementById('preview-container');
+            const imagePreview = document.getElementById('image-preview');
+            const removeBtn = document.getElementById('remove-btn');
+            
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const stateIdle = document.getElementById('state-idle');
+            const stateLoading = document.getElementById('state-loading');
+            const stateResult = document.getElementById('state-result');
+            const errorAlert = document.getElementById('error-alert');
+            const errorMsg = document.getElementById('error-msg');
+            
+            const resClass = document.getElementById('res-class');
+            const resConf = document.getElementById('res-conf');
+
+            let base64ImageRaw = null;
+            let currentThumbnail = null;
+
+            // Drag events
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+            function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-active'), false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-active'), false);
+            });
+
+            dropZone.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files));
+            dropZone.addEventListener('click', () => { if (!base64ImageRaw) fileInput.click(); });
+            fileInput.addEventListener('change', function() { handleFiles(this.files); });
+            removeBtn.addEventListener('click', (e) => { e.stopPropagation(); resetWorkspace(); });
+
+            function handleFiles(files) {
+                if (files.length === 0) return;
+                const file = files[0];
+                if (!file.type.match('image.*')) {
+                    showError("Please upload a valid JPG/PNG image.");
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onloadend = function() {
+                    const result = reader.result;
+                    currentThumbnail = result; // Save data URL for history thumbnail
+                    imagePreview.src = result;
+                    base64ImageRaw = result.split(',')[1];
+                    
+                    uploadPrompt.classList.add('hidden');
+                    previewContainer.classList.remove('hidden');
+                    analyzeBtn.disabled = false;
+                    
+                    hideError();
+                    setAnalysisState('idle');
+                }
+            }
+
+            function resetWorkspace() {
+                base64ImageRaw = null;
+                currentThumbnail = null;
+                fileInput.value = "";
+                imagePreview.src = "";
+                
+                uploadPrompt.classList.remove('hidden');
+                previewContainer.classList.add('hidden');
+                analyzeBtn.disabled = true;
+                
+                hideError();
+                setAnalysisState('idle');
+            }
+
+            function setAnalysisState(state) {
+                stateIdle.classList.add('hidden');
+                stateLoading.classList.add('hidden');
+                stateResult.classList.add('hidden');
+
+                if(state === 'idle') stateIdle.classList.remove('hidden');
+                if(state === 'loading') stateLoading.classList.remove('hidden');
+                if(state === 'result') stateResult.classList.remove('hidden');
+            }
+
+            function showError(msg) {
+                errorMsg.textContent = msg;
+                errorAlert.classList.remove('hidden');
+            }
+            function hideError() {
+                errorAlert.classList.add('hidden');
+            }
+
+            // Execute Analysis
+            analyzeBtn.addEventListener('click', async () => {
+                if (!base64ImageRaw) return;
+
+                analyzeBtn.disabled = true;
+                hideError();
+                setAnalysisState('loading');
+
+                try {
+                    const response = await fetch('/predict', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ image: base64ImageRaw })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        let msg = data.error || "An unexpected network error occurred.";
+                        if (response.status === 503) msg = "The AI model is currently unavailable or initializing.";
+                        throw new Error(msg);
+                    }
+
+                    // Success
+                    resClass.textContent = data.prediction;
+                    resConf.textContent = (data.confidence * 100).toFixed(2) + "%";
+                    
+                    resClass.className = 'text-3xl font-extrabold ' + 
+                        (data.prediction.toLowerCase() === 'normal' ? 'text-emerald-600' : 'text-rose-600');
+
+                    setAnalysisState('result');
+                    analyzeBtn.disabled = false;
+
+                    // Save to local history
+                    saveHistory({
+                        id: Date.now(),
+                        timestamp: Date.now(),
+                        prediction: data.prediction,
+                        confidence: data.confidence,
+                        thumbnail: currentThumbnail
+                    });
+
+                } catch (error) {
+                    setAnalysisState('idle');
+                    analyzeBtn.disabled = false;
+                    showError(error.message);
                 }
             });
         });
-    });
-</script>
-
+    </script>
 </body>
 </html>

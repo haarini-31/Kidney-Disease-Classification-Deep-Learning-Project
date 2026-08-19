@@ -21,7 +21,7 @@ class Evaluation:
 
     def _valid_generator(self):
 
-        datagenerator_kwargs = dict(rescale=1./255, validation_split=0.30)
+        datagenerator_kwargs = dict(rescale=1./255, validation_split=0.20)
 
         dataflow_kwargs = dict(
             target_size=self.config.params_image_size[:-1],
@@ -32,8 +32,9 @@ class Evaluation:
         valid_datagenerator = tf.keras.preprocessing.image.ImageDataGenerator(**datagenerator_kwargs)
 
         self.valid_generator = valid_datagenerator.flow_from_directory(
-            directory=self.config.training_data,
+            directory=str(self.config.training_data),
             subset="validation",
+            seed=42,
             shuffle=False,
             **dataflow_kwargs
         )

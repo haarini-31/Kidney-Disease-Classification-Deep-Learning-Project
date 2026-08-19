@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    @media print {
+        #sidebar {
+            display: none !important;
+        }
+        .print-hide {
+            display: none !important;
+        }
+        body {
+            background-color: white !important;
+        }
+        .print-container {
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: 100% !important;
+        }
+        @page {
+            margin: 2cm;
+        }
+    }
+</style>
+
+<div class="max-w-4xl mx-auto pb-12">
+    <!-- Breadcrumbs & Actions (Hidden on Print) -->
+    <div class="print-hide flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+        <div class="flex items-center gap-2 text-sm text-slate-500">
+            <a href="{{ url_for('patients') }}" class="hover:text-blue-600 transition-colors">Patients</a>
+            <i class="ph ph-caret-right text-xs"></i>
+            <a href="{{ url_for('patient_profile', id=scan.patient.id) }}" class="hover:text-blue-600 transition-colors">{{ scan.patient.name }}</a>
+            <i class="ph ph-caret-right text-xs"></i>
+            <span class="text-slate-900 font-medium">Final Report</span>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <button onclick="window.print()" class="bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium py-2 px-4 rounded-lg transition-colors border border-slate-200 shadow-sm flex items-center gap-2">
+                <i class="ph ph-printer"></i> Print Report
+            </button>
+            <a href="{{ url_for('report_pdf', scan_id=scan.id) }}" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors shadow-sm flex items-center gap-2">
+                <i class="ph ph-download-simple"></i> Download PDF
+            </a>
+        </div>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="print-hide flex items-center justify-between mb-8 overflow-x-auto pb-2 text-xs font-medium uppercase tracking-wider">
+        <div class="flex items-center gap-2 text-emerald-600 shrink-0"><i class="ph-fill ph-check-circle text-base"></i> 01 Patient</div>
+        <div class="h-px bg-emerald-200 flex-1 mx-4 min-w-[20px]"></div>
+        <div class="flex items-center gap-2 text-emerald-600 shrink-0"><i class="ph-fill ph-check-circle text-base"></i> 02 Scan</div>
+        <div class="h-px bg-emerald-200 flex-1 mx-4 min-w-[20px]"></div>
+        <div class="flex items-center gap-2 text-emerald-600 shrink-0"><i class="ph-fill ph-check-circle text-base"></i> 03 AI Analysis</div>
+        <div class="h-px bg-emerald-200 flex-1 mx-4 min-w-[20px]"></div>
+        <div class="flex items-center gap-2 text-emerald-600 shrink-0"><i class="ph-fill ph-check-circle text-base"></i> 04 Review</div>
+        <div class="h-px bg-emerald-200 flex-1 mx-4 min-w-[20px]"></div>
+        <div class="flex items-center gap-2 text-blue-600 shrink-0"><i class="ph-fill ph-file-text text-base"></i> 05 Report</div>
+    </div>
+
+    <!-- Report Document -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-8 md:p-12 print-container">
+        <!-- Report Header -->
+        <div class="border-b-2 border-slate-900 pb-6 mb-8 text-center sm:text-left flex flex-col sm:flex-row justify-between items-center sm:items-end gap-4">
+            <div>
+                <h1 class="text-3xl font-black text-slate-900 tracking-tight">RENALSCAN AI</h1>
+                <h2 class="text-xl font-bold text-slate-700 mt-1">Kidney Imaging Report</h2>
+                <span class="inline-block bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mt-3">Research / Demonstration Report</span>
+            </div>
+            <div class="text-slate-500 text-sm text-right">
+                <p><strong>Report ID:</strong> RS-{{ scan.id }}-{{ scan.scan_date.strftime('%Y%m%d') }}</p>
+                <p><strong>Date:</strong> {{ scan.report.created_at.strftime('%Y-%m-%d') }}</p>
+            </div>
+        </div>
+
+        <!-- Two Column Layout for Info -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <!-- Patient Info -->
+            <div>
+                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-2">Patient Information</h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Name:</span>
+                        <strong class="text-slate-900">{{ scan.patient.name }}</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Patient ID:</span>
+                        <strong class="text-slate-900">{{ scan.patient.patient_id }}</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Age:</span>
+                        <strong class="text-slate-900">{{ scan.patient.age if scan.patient.age else 'N/A' }}</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Gender:</span>
+                        <strong class="text-slate-900">{{ scan.patient.gender if scan.patient.gender else 'N/A' }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scan Info -->
+            <div>
+                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-2">Scan Information</h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Study Type:</span>
+                        <strong class="text-slate-900">{{ scan.study_type }}</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Scan Date:</span>
+                        <strong class="text-slate-900">{{ scan.scan_date.strftime('%Y-%m-%d %H:%M') }}</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Scan ID:</span>
+                        <strong class="text-slate-900">{{ scan.id }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Analysis -->
+        <div class="mb-8">
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-2">AI Analysis</h3>
+            {% if scan.ai_result %}
+            <div class="bg-slate-50 rounded-lg p-5 border border-slate-200 flex flex-col sm:flex-row gap-6 items-center sm:items-start justify-between">
+                <div>
+                    <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Classification</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ scan.ai_result.prediction }}</p>
+                </div>
+                <div class="text-center sm:text-left">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Confidence</p>
+                    <p class="text-xl font-bold text-slate-900">{{ "%.2f"|format(scan.ai_result.confidence * 100) }}%</p>
+                </div>
+                <div class="text-center sm:text-right">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Model</p>
+                    <p class="text-sm font-medium text-slate-900">{{ scan.ai_result.model_name }}</p>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-sm text-slate-500 italic">No AI Analysis available.</p>
+            {% endif %}
+        </div>
+
+        <!-- Professional Review -->
+        <div class="mb-12">
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-2">Professional Review</h3>
+            {% if scan.review %}
+            <div class="space-y-6 text-sm">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <span class="text-slate-500">Status:</span>
+                        <strong class="text-slate-900 ml-2">{{ scan.review.status }}</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-500">Reviewed By:</span>
+                        <strong class="text-slate-900 ml-2">{{ scan.review.reviewer.name }}</strong>
+                    </div>
+                </div>
+
+                <div>
+                    <strong class="block text-slate-900 mb-1">Clinical Notes:</strong>
+                    <div class="text-slate-700 bg-slate-50 p-4 rounded-lg border border-slate-200 whitespace-pre-wrap">{{ scan.review.clinical_notes if scan.review.clinical_notes else 'None provided.' }}</div>
+                </div>
+
+                <div>
+                    <strong class="block text-slate-900 mb-1">Clinical Impression:</strong>
+                    <div class="text-slate-700 bg-slate-50 p-4 rounded-lg border border-slate-200 whitespace-pre-wrap">{{ scan.review.clinical_impression if scan.review.clinical_impression else 'None provided.' }}</div>
+                </div>
+
+                <div>
+                    <strong class="block text-slate-900 mb-1">Recommendation:</strong>
+                    <div class="text-slate-700 bg-slate-50 p-4 rounded-lg border border-slate-200 whitespace-pre-wrap">{{ scan.review.recommendation if scan.review.recommendation else 'None provided.' }}</div>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-sm text-slate-500 italic">Pending Professional Review.</p>
+            {% endif %}
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="border-t-2 border-slate-900 pt-6">
+            <p class="text-xs text-slate-500 text-center leading-relaxed font-semibold uppercase tracking-wider">
+                This report is generated as part of an educational/research prototype. AI-generated classification is an assistive output and does not constitute a medical diagnosis. The result must be reviewed and interpreted by a qualified healthcare professional.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

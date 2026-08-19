@@ -16,7 +16,8 @@ class Training:
         img_size = tuple(map(int, self.config.params_image_size[:2]))
 
         valid_datagenerator = tf.keras.preprocessing.image.ImageDataGenerator(
-            rescale=1./255
+            rescale=1./255,
+            validation_split=0.20
         )
 
         self.valid_generator = valid_datagenerator.flow_from_directory(
@@ -24,6 +25,8 @@ class Training:
             target_size=img_size,
             batch_size=self.config.params_batch_size,
             class_mode='categorical',
+            subset='validation',
+            seed=42,
             shuffle=False,
             interpolation="bilinear"
         )
@@ -31,6 +34,7 @@ class Training:
         if self.config.params_is_augmentation:
             train_datagenerator = tf.keras.preprocessing.image.ImageDataGenerator(
                 rescale=1./255,
+                validation_split=0.20,
                 horizontal_flip=True,
                 width_shift_range=0.2,
                 height_shift_range=0.2,
@@ -46,6 +50,8 @@ class Training:
             target_size=img_size,
             batch_size=self.config.params_batch_size,
             class_mode='categorical',
+            subset='training',
+            seed=42,
             shuffle=True,
             interpolation="bilinear"
         )

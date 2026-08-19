@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Breadcrumbs -->
+<div class="flex items-center gap-2 text-sm text-slate-500 mb-6">
+    <a href="{{ url_for('patients') }}" class="hover:text-blue-600 transition-colors">Patients</a>
+    <i class="ph ph-caret-right text-xs"></i>
+    <span class="text-slate-900 font-medium">{{ patient.name }}</span>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="mb-6 p-4 rounded-lg flex items-start gap-3 text-sm {% if category == 'error' %}bg-red-50 text-red-700 border border-red-100{% else %}bg-green-50 text-green-700 border border-green-100{% endif %}">
+                <i class="ph-fill {% if category == 'error' %}ph-warning-circle{% else %}ph-check-circle{% endif %} text-lg mt-0.5"></i>
+                <span>{{ message }}</span>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<!-- Header Profile Card -->
+<div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-8 flex flex-col md:flex-row md:items-start justify-between gap-6">
+    <div class="flex items-start gap-5">
+        <div class="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-2xl font-bold shrink-0">
+            {{ patient.name[0] }}
+        </div>
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">{{ patient.name }}</h1>
+            <p class="text-slate-500 mb-4">{{ patient.patient_id }}</p>
+            
+            <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                <div class="flex items-center gap-2 text-slate-600">
+                    <i class="ph ph-calendar text-slate-400"></i>
+                    <span>Age: <strong class="text-slate-900">{{ patient.age if patient.age else 'Unknown' }}</strong></span>
+                </div>
+                <div class="flex items-center gap-2 text-slate-600">
+                    <i class="ph ph-gender-intersex text-slate-400"></i>
+                    <span>Gender: <strong class="text-slate-900">{{ patient.gender if patient.gender else 'Unknown' }}</strong></span>
+                </div>
+                <div class="flex items-center gap-2 text-slate-600">
+                    <i class="ph ph-clock text-slate-400"></i>
+                    <span>Registered: <strong class="text-slate-900">{{ patient.created_at.strftime('%Y-%m-%d') }}</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="flex items-center gap-3 shrink-0">
+        <button class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
+            Edit Patient
+        </button>
+        <a href="{{ url_for('new_scan', patient_id=patient.id) }}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-sm text-sm">
+            <i class="ph ph-scan"></i>
+            <span>New Visit & Analysis</span>
+        </a>
+    </div>
+</div>
+
+<!-- Encounter History -->
+<div class="mb-4 flex items-center justify-between">
+    <h2 class="text-lg font-bold text-slate-900 tracking-tight">Clinical History</h2>
+    <span class="bg-slate-100 text-slate-600 text-xs font-semibold px-2.5 py-1 rounded-full">{{ patient.encounters|length }} Visits</span>
+</div>
+
+{% if not patient.encounters %}
+<!-- Empty State -->
+<div class="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
+    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-50 text-slate-400 mb-4">
+        <i class="ph ph-calendar-plus text-3xl"></i>
+    </div>
+    <h3 class="text-lg font-semibold text-slate-900 mb-1">No visits recorded</h3>
+    <p class="text-slate-500 mb-6 max-w-sm mx-auto">This patient does not have any recorded encounters or analyses yet.</p>
+    <a href="{{ url_for('new_scan', patient_id=patient.id) }}" class="inline-flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium py-2 px-5 rounded-lg transition-colors shadow-sm">
+        <i class="ph ph-plus text-lg text-slate-400"></i>
+        <span>Start New Visit</span>
+    </a>
+</div>
+{% else %}
+<div class="space-y-6">
+    {% for encounter in patient.encounters %}
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <!-- Encounter Header -->
+        <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex flex-col md:flex-row justify-between md:items-center gap-4">
+            <div>
+                <h3 class="font-bold text-slate-900 text-lg">{{ encounter.visit_type }}</h3>
+                <div class="flex items-center gap-4 text-sm text-slate-500 mt-1">
+                    <span class="flex items-center gap-1.5"><i class="ph ph-calendar-blank"></i> {{ encounter.visit_date.strftime('%Y-%m-%d %H:%M') }}</span>
+                    <span class="flex items-center gap-1.5"><i class="ph ph-user-md"></i> Treating Doctor: {{ encounter.doctor.name }}</span>
+                </div>
+            </div>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-200 text-slate-700">
+                Encounter ID: {{ encounter.id }}
+            </span>
+        </div>
+        
+        <!-- Encounter Body: Scans -->
+        {% if encounter.scans %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-slate-100 text-xs uppercase tracking-wider text-slate-500 font-semibold">
+                        <th class="px-6 py-3">Study Type</th>
+                        <th class="px-6 py-3">AI Result</th>
+                        <th class="px-6 py-3">Review Status</th>
+                        <th class="px-6 py-3 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for scan in encounter.scans %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-slate-900">{{ scan.study_type }}</div>
+                            <div class="text-xs text-slate-500 mt-0.5">Uploaded by: {{ scan.uploader.name if scan.uploader else 'Unknown' }}</div>
+                        </td>
+                        
+                        {% if scan.ai_result %}
+                            <td class="px-6 py-4">
+                                <span class="text-sm font-medium {% if scan.ai_result.prediction == 'Normal' %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                                    {{ scan.ai_result.prediction }}
+                                </span>
+                                <div class="text-xs text-slate-500 mt-0.5">Conf: {{ "%.1f"|format(scan.ai_result.confidence * 100) }}%</div>
+                            </td>
+                        {% else %}
+                            <td class="px-6 py-4 text-sm text-slate-400 italic">Pending</td>
+                        {% endif %}
+
+                        <td class="px-6 py-4 text-sm">
+                            {% if scan.review %}
+                                <div class="flex flex-col gap-1">
+                                    <div>
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium {% if 'Agree' in scan.review.status %}bg-emerald-50 text-emerald-700 border border-emerald-100{% elif 'Disagree' in scan.review.status %}bg-rose-50 text-rose-700 border border-rose-100{% else %}bg-amber-50 text-amber-700 border border-amber-100{% endif %}">
+                                            {{ scan.review.status }}
+                                        </span>
+                                    </div>
+                                    <span class="text-xs text-slate-500">Reviewed by {{ scan.review.reviewer.name }}</span>
+                                </div>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                                    Pending Review
+                                </span>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="px-6 py-4 text-right text-sm">
+                            <div class="flex items-center justify-end gap-3">
+                                <a href="{{ url_for('scan_result', scan_id=scan.id) }}" class="text-slate-500 hover:text-blue-600 font-medium transition-colors">Analysis</a>
+                                {% if scan.report %}
+                                    <a href="{{ url_for('report', scan_id=scan.id) }}" class="text-blue-600 hover:text-blue-800 font-medium transition-colors">Report</a>
+                                {% else %}
+                                    <a href="{{ url_for('review', scan_id=scan.id) }}" class="text-blue-600 hover:text-blue-800 font-medium transition-colors">Review</a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-6 text-center text-slate-500 text-sm italic">
+            No imaging scans recorded for this visit.
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

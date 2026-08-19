@@ -17,4 +17,10 @@ scipy
 flask
 flask-cors
 gdown
+dagshub
 -e .
+Flask-SQLAlchemy
+python-dotenv
+reportlab
+gunicorn
+psycopg2-binary
