@@ -15,11 +15,7 @@ services:
           name: renalscan-db
           property: connectionString
       - key: UPLOAD_FOLDER
-        value: /data/uploads
-    disk:
-      name: uploads-disk
-      mountPath: /data/uploads
-      sizeGB: 1
+        value: /tmp/uploads
 
 databases:
   - name: renalscan-db
