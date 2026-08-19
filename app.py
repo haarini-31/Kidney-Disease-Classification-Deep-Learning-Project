@@ -283,20 +283,27 @@ def new_scan(patient_id):
                 
                 # 4. AI Analysis
                 if classifier is None:
-                    flash('Prediction model unavailable', 'error')
-                    return redirect(url_for('patient_profile', id=patient.id))
-                    
-                prediction, confidence = classifier.predict(file_path)
-                
-                # 5. Save AI Result
-                ai_res = AIResult(
-                    scan_id=scan.id, 
-                    prediction=prediction, 
-                    confidence=round(confidence, 4),
-                    model_name='VGG16 Transfer Learning'
-                )
-                db.session.add(ai_res)
-                db.session.commit()
+                    flash('AI Prediction model is currently offline. Scan has been saved without AI result.', 'warning')
+                else:
+                    try:
+                        print(f"LzLoad: Triggering inference for Scan ID {scan.id}...")
+                        prediction, confidence = classifier.predict(file_path)
+                        
+                        # 5. Save AI Result
+                        ai_res = AIResult(
+                            scan_id=scan.id, 
+                            prediction=prediction, 
+                            confidence=round(confidence, 4),
+                            model_name='VGG16 Transfer Learning'
+                        )
+                        db.session.add(ai_res)
+                        db.session.commit()
+                        flash('AI Analysis completed.', 'success')
+                    except Exception as pred_err:
+                        import traceback
+                        print(f"ERROR: Inference failed for Scan ID {scan.id}: {pred_err}")
+                        traceback.print_exc()
+                        flash('AI Prediction model temporarily unavailable. Scan has been saved without AI result.', 'warning')
                 
                 # 6. Clean up temporary file to save space on ephemeral disk
                 try:
@@ -305,7 +312,6 @@ def new_scan(patient_id):
                 except Exception as clean_err:
                     print(f"Warning: Could not clean up temporary file {file_path}: {clean_err}")
                 
-                flash('AI Analysis completed.', 'success')
                 return redirect(url_for('scan_result', scan_id=scan.id))
                 
             except Exception as e:

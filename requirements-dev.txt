@@ -1,0 +1,14 @@
+-r requirements.txt
+pandas
+dvc
+mlflow==2.2.2
+notebook
+scikit-learn
+matplotlib
+seaborn
+tqdm
+joblib
+types-pyYAML
+scipy
+gdown
+dagshub
