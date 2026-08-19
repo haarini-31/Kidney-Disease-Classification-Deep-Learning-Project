@@ -1,6 +1,8 @@
-# Ignore artifacts and data
-artifacts/
-research/**/artifacts/
+# Ignore artifacts directory contents by default
+artifacts/*
+!artifacts/training/
+artifacts/training/*
+!artifacts/training/model.h5.part-*
 
 # Ignore datasets
 *.zip
@@ -31,10 +33,6 @@ uploads/
 .env
 .env.*
 
-# Force include model.h5
-!artifacts/training/model.h5
-
 # Force include static demo scans
 !static/demo_scans/
 !static/demo_scans/*
-

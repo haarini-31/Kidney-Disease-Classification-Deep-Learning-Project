@@ -10,6 +10,17 @@ class PredictionPipeline:
         self.project_root = Path(__file__).resolve().parent.parent.parent.parent
         model_path = self.project_root / "artifacts" / "training" / "model.h5"
         
+        # Reconstruct model from part files if it does not exist
+        if not model_path.exists():
+            part_files = sorted(model_path.parent.glob("model.h5.part-*"))
+            if part_files:
+                print(f"Reconstructing model from parts: {part_files}")
+                os.makedirs(model_path.parent, exist_ok=True)
+                with open(model_path, 'wb') as outfile:
+                    for part in part_files:
+                        with open(part, 'rb') as infile:
+                            outfile.write(infile.read())
+
         # Load the model only once when the pipeline is instantiated
         if not model_path.exists():
             raise FileNotFoundError(f"Model not found at {model_path}")
