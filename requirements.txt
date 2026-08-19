@@ -11,3 +11,4 @@ python-dotenv
 reportlab
 gunicorn
 psycopg2-binary
+joblib
