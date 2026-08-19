@@ -68,6 +68,7 @@
 
         <!-- AI Panel -->
         <div class="md:w-1/2 p-6 md:p-8 flex flex-col justify-center bg-slate-50/50">
+            {% if scan.ai_result %}
             <div class="mb-8">
                 <div class="flex items-center gap-2 mb-2">
                     <i class="ph-fill ph-brain text-blue-600 text-xl"></i>
@@ -103,6 +104,33 @@
                     {% endif %}
                 </div>
             </div>
+            {% else %}
+            <!-- Fallback when AIResult is missing/pending -->
+            <div class="mb-8">
+                <div class="flex items-center gap-2 mb-2">
+                    <i class="ph-fill ph-warning-circle text-amber-500 text-xl"></i>
+                    <h2 class="text-sm font-semibold text-slate-600 uppercase tracking-wider">AI Classification</h2>
+                </div>
+                <div class="text-3xl font-bold text-slate-800 tracking-tight mb-2">
+                    AI Analysis Pending
+                </div>
+                <p class="text-sm text-slate-500 leading-relaxed mt-2">
+                    The AI inference output is currently unavailable or pending for this scan. You may still write a manual professional review and issue the clinical report.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mt-auto">
+                <div class="bg-white rounded-xl p-4 border border-slate-200 col-span-2">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Professional Review</p>
+                    {% if scan.review %}
+                        <p class="text-sm font-bold text-slate-900">{{ scan.review.status }}</p>
+                        <p class="text-xs text-slate-500">By {{ scan.review.reviewer.name }}</p>
+                    {% else %}
+                        <p class="text-sm font-medium text-slate-500 italic">Pending</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 
