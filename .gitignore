@@ -34,3 +34,7 @@ uploads/
 # Force include model.h5
 !artifacts/training/model.h5
 
+# Force include static demo scans
+!static/demo_scans/
+!static/demo_scans/*
+

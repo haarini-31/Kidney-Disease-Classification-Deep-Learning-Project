@@ -211,6 +211,9 @@ def patient_profile(id):
 @app.route('/uploads/<filename>')
 @login_required
 def uploaded_file(filename):
+    demo_dir = os.path.join(app.root_path, 'static', 'demo_scans')
+    if os.path.exists(os.path.join(demo_dir, filename)):
+        return send_from_directory(demo_dir, filename)
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/scan/new/<int:patient_id>', methods=['GET', 'POST'])
